@@ -32,7 +32,7 @@ const isProduction =
 const basePath = isProduction ? "/xiaety" : "/";
 
 export default defineConfig({
-	site: "https://nemoizm.github.io",
+	site: "https://cassiaki.github.io",
 	base: basePath,
 	trailingSlash: "always",
 	integrations: [

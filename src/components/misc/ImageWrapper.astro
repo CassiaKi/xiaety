@@ -16,19 +16,24 @@ import { url } from "../../utils/url-utils";
 const { id, src, alt, position = "center", basePath = "/" } = Astro.props;
 const className = Astro.props.class;
 
-const isLocal = !(
-	src.startsWith("/") ||
-	src.startsWith("http") ||
-	src.startsWith("https") ||
-	src.startsWith("data:")
-);
-const isPublic = src.startsWith("/");
+// Check if the src is a local file path (not http, https, or data URL)
+const isExternal = src.startsWith("http") || src.startsWith("https") || src.startsWith("data:");
+
+// Check if the src is a public path (starts with /)
+const isPublicPath = src.startsWith("/");
+
+// Check if the src already contains the base path to avoid duplication
+const basePathFromEnv = import.meta.env.BASE_URL;
+const alreadyHasBasePath = src.startsWith(basePathFromEnv) || src.startsWith("/" + basePathFromEnv.replace("/", ""));
+
+// Check if the src is already a full URL or an Astro-generated asset path
+const isAssetPath = src.includes("_astro/");
 
 // TODO temporary workaround for images dynamic import
 // https://github.com/withastro/astro/issues/3373
 // biome-ignore lint/suspicious/noImplicitAnyLet: <check later>
 let img;
-if (isLocal) {
+if (!isExternal && !isPublicPath && !isAssetPath) {
 	const files = import.meta.glob<ImageMetadata>("../../**", {
 		import: "default",
 	});
@@ -40,8 +45,9 @@ if (isLocal) {
 		console.error(
 			`\n[ERROR] Image file not found: ${normalizedPath.replace("../../", "src/")}`,
 		);
+	} else {
+		img = await file();
 	}
-	img = await file();
 }
 
 const imageClass = "w-full h-full object-cover";
@@ -49,6 +55,8 @@ const imageStyle = `object-position: ${position}`;
 ---
 <div id={id} class:list={[className, 'overflow-hidden relative']}>
     <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div>
-    {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle}/>}
-    {!isLocal && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle}/>}
+    {!isExternal && !isPublicPath && !isAssetPath && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle}/>}
+    {isExternal && <img src={src} alt={alt || ""} class={imageClass} style={imageStyle}/>}
+    {isPublicPath && (alreadyHasBasePath || isAssetPath) && <img src={src} alt={alt || ""} class={imageClass} style={imageStyle}/>}
+    {isPublicPath && !alreadyHasBasePath && !isAssetPath && <img src={url(src)} alt={alt || ""} class={imageClass} style={imageStyle}/>}
 </div>
