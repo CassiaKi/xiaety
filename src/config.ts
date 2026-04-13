@@ -8,20 +8,20 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "Memori",
-	subtitle: "A gallery of memories",
+	title: "Xiaety",
+	subtitle: "Kiddy's Gallery",
 	lang: "en", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
-		hue: 150, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
-		fixed: true, // Hide the theme color picker for visitors
+		hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
+		fixed: false, // Hide the theme color picker for visitors
 	},
 	banner: {
-		enable: false,
+		enable: true,
 		src: "assets/images/banner.jpg", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 		position: "bottom", // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
 		credit: {
 			enable: true, // Display the credit text of the banner image
-			text: "Tham Ma Pass, Hagiangloop", // Credit text to be displayed
+			text: "Kiddy", // Credit text to be displayed
 			url: "https://maps.app.goo.gl/9bESAJA5LMN3gRF58", // (Optional) URL link to the original artwork or artist's page
 		},
 	},
@@ -64,8 +64,8 @@ export const navBarConfig: NavBarConfig = {
 
 export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/avatar.jpeg", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
-	name: "Go With Nemo",
-	bio: "Live a life you will remember!",
+	name: "Go With Kiddy",
+	bio: "高山仰止，景行行止",
 	links: [
 		// {
 		// 	name: "Twitter",
@@ -79,20 +79,20 @@ export const profileConfig: ProfileConfig = {
 		// 	icon: "fa6-brands:steam",
 		// 	url: "https://store.steampowered.com",
 		// },
-		{
-			name: "Youtube",
-			icon: "fa6-brands:youtube",
-			url: "https://www.youtube.com/@gowithnemo",
-		},
-		{
-			name: "Instagram",
-			icon: "fa6-brands:instagram",
-			url: "https://www.instagram.com/gowithnemo/",
-		},
+		// {
+		// 	name: "Youtube",
+		// 	icon: "fa6-brands:youtube",
+		// 	url: "https://www.youtube.com/@gowithnemo",
+		// },
+		// {
+		// 	name: "Instagram",
+		// 	icon: "fa6-brands:instagram",
+		// 	url: "https://www.instagram.com/gowithnemo/",
+		// },
 		{
 			name: "Tiktok",
 			icon: "fa6-brands:tiktok",
-			url: "https://www.tiktok.com/@gowithnemo",
+			url: "https://v.douyin.com/VHGI5i4J3O4",
 		},
 	],
 };

@@ -2,11 +2,6 @@
 import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
 import MainGridLayout from "../../layouts/MainGridLayout.astro";
-import {
-	buildCloudinaryOriginalUrl,
-	buildCloudinaryThumbnailUrl,
-	listCloudinaryImages,
-} from "../../utils/cloudinary-utils";
 import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 import "../../styles/gallery.css";
 
@@ -34,7 +29,8 @@ const localImageModules = import.meta.glob(
 	{ default: { src: string; width: number; height: number } }
 >;
 
-const localImageEntries = Object.entries(localImageModules)
+// Process local images only
+const allImageEntries = Object.entries(localImageModules)
 	.filter(([path]) => path.includes(`/galleries/${slug}/`))
 	.sort(([a], [b]) => a.localeCompare(b))
 	.map(([path, mod]) => ({
@@ -44,52 +40,6 @@ const localImageEntries = Object.entries(localImageModules)
 		thumbnailSrc: mod.default?.src || "",
 		originalSrc: mod.default?.src || "",
 	}));
-
-// Get images from Cloudinary API
-const folderPath = `galleries/${slug}`;
-let cloudinaryImages: Array<{
-	public_id: string;
-	width: number;
-	height: number;
-	format: string;
-	url: string;
-	secure_url: string;
-}> = [];
-
-try {
-	cloudinaryImages = await listCloudinaryImages(folderPath);
-	// Sort images by public_id for consistent ordering
-	cloudinaryImages.sort((a, b) => a.public_id.localeCompare(b.public_id));
-} catch (error) {
-	console.error(
-		`Failed to load images from Cloudinary for gallery ${slug}:`,
-		error,
-	);
-	// If Cloudinary API fails, imageEntries will be empty array
-}
-
-// Build Cloudinary URLs for all images
-const imageEntries = cloudinaryImages.map((image) => {
-	const thumbnailSrc = buildCloudinaryThumbnailUrl(image.public_id, 800);
-	const originalSrc = buildCloudinaryOriginalUrl(image.public_id);
-
-	return {
-		publicId: image.public_id,
-		width: image.width,
-		height: image.height,
-		thumbnailSrc,
-		originalSrc,
-	};
-});
-
-// Merge local images and Cloudinary images, remove duplicates by original URL
-const allImageEntries = [...localImageEntries, ...imageEntries].filter(
-	(image, index, arr) =>
-		Boolean(image.originalSrc) &&
-		arr.findIndex(
-			(candidate) => candidate.originalSrc === image.originalSrc,
-		) === index,
-);
 
 const galleryTitle = entry.data.title;
 const galleryDescription =

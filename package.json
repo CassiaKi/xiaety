@@ -13,7 +13,6 @@
 		"new-gallery": "node scripts/new-gallery.js",
 		"convert-heic": "node scripts/convert-heic.js",
 		"delete-heic": "node scripts/convert-heic.js --delete-only",
-		"upload-cloudinary": "node scripts/upload-to-cloudinary.js",
 		"format": "biome format --write ./src",
 		"lint": "biome check --write ./src",
 		"preinstall": "npx only-allow pnpm"
@@ -40,7 +39,6 @@
 		"astro": "5.16.12",
 		"astro-expressive-code": "^0.41.6",
 		"astro-icon": "^1.1.5",
-		"cloudinary": "^2.9.0",
 		"hastscript": "^9.0.1",
 		"katex": "^0.16.27",
 		"markdown-it": "^14.1.0",

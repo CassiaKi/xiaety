@@ -1,9 +1,4 @@
 import { getCollection } from "astro:content";
-import {
-	buildCloudinaryThumbnailUrl,
-	listCloudinaryImages,
-	localPathToCloudinaryPublicId,
-} from "./cloudinary-utils";
 
 export type GalleryInfo = {
 	slug: string;
@@ -33,41 +28,11 @@ export async function getGalleries(): Promise<GalleryInfo[]> {
 			.filter(([path]) => path.includes(`/content/galleries/${slug}/`))
 			.sort(([a], [b]) => a.localeCompare(b));
 
-		// Get images from Cloudinary API
-		const folderPath = `galleries/${slug}`;
-		let cloudinaryImages: Array<{
-			public_id: string;
-			width: number;
-			height: number;
-			format: string;
-			url: string;
-			secure_url: string;
-		}> = [];
-		let cloudinaryImageCount = 0;
-		let firstImageUrl = "";
-
-		try {
-			cloudinaryImages = await listCloudinaryImages(folderPath);
-			cloudinaryImageCount = cloudinaryImages.length;
-		} catch {
-			cloudinaryImages = [];
-		}
-
-		// Sort images by public_id to get first image consistently
-		if (cloudinaryImages.length > 0) {
-			cloudinaryImages.sort((a, b) => a.public_id.localeCompare(b.public_id));
-			firstImageUrl = buildCloudinaryThumbnailUrl(
-				cloudinaryImages[0].public_id,
-				600,
-				400,
-			);
-		}
-
 		const localImageCount = localImages.length;
 		const firstLocalImageUrl = localImages[0]?.[1]?.default?.src || "";
-		const imageCount = cloudinaryImageCount + localImageCount;
+		const imageCount = localImageCount;
 
-		// Use cover image from metadata if available, otherwise use first image from Cloudinary
+		// Use cover image from metadata if available, otherwise use first local image
 		let finalImagePath = entry.data.image || "";
 
 		if (finalImagePath && !finalImagePath.startsWith("http")) {
@@ -78,13 +43,10 @@ export async function getGalleries(): Promise<GalleryInfo[]> {
 			if (explicitLocalImage) {
 				finalImagePath = explicitLocalImage;
 			} else {
-				const publicId = localPathToCloudinaryPublicId(
-					`galleries/${slug}/${finalImagePath}`,
-				);
-				finalImagePath = buildCloudinaryThumbnailUrl(publicId, 600, 400);
+				finalImagePath = firstLocalImageUrl;
 			}
 		} else if (!finalImagePath) {
-			finalImagePath = firstLocalImageUrl || firstImageUrl;
+			finalImagePath = firstLocalImageUrl;
 		}
 
 		return {
