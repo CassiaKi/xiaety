@@ -29,7 +29,10 @@ const { slug } = Astro.params;
 const localImageModules = import.meta.glob(
 	"../../content/galleries/**/*.{jpg,jpeg,png,webp,avif,gif}",
 	{ eager: true },
-) as Record<string, { default: { src: string; width: number; height: number } }>;
+) as Record<
+	string,
+	{ default: { src: string; width: number; height: number } }
+>;
 
 const localImageEntries = Object.entries(localImageModules)
 	.filter(([path]) => path.includes(`/galleries/${slug}/`))
@@ -83,8 +86,9 @@ const imageEntries = cloudinaryImages.map((image) => {
 const allImageEntries = [...localImageEntries, ...imageEntries].filter(
 	(image, index, arr) =>
 		Boolean(image.originalSrc) &&
-		arr.findIndex((candidate) => candidate.originalSrc === image.originalSrc) ===
-			index,
+		arr.findIndex(
+			(candidate) => candidate.originalSrc === image.originalSrc,
+		) === index,
 );
 
 const galleryTitle = entry.data.title;
