@@ -1,7 +1,7 @@
 ---
 title: Bridge
 published: 2026-03-16
-description: '收录各式桥梁影像，定格跨越山河的线条与光影。'
+description: 'A gallery of various bridges, freezing the moment of lines and light crossing mountains and rivers'
 image: 'cover.jpg'
 location: 'Hubei Wuhan'
 ---
