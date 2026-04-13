@@ -20,8 +20,8 @@ export const siteConfig: SiteConfig = {
 		src: "assets/images/banner.jpg", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 		position: "bottom", // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
 		credit: {
-			enable: true, // Display the credit text of the banner image
-			text: "Kiddy", // Credit text to be displayed
+			enable: false, // Display the credit text of the banner image
+			text: "", // Credit text to be displayed
 			url: "https://maps.app.goo.gl/9bESAJA5LMN3gRF58", // (Optional) URL link to the original artwork or artist's page
 		},
 	},
