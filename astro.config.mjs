@@ -29,7 +29,7 @@ import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 // In dev mode, use root path for easier local development
 const isProduction =
 	process.env.NODE_ENV === "production" || process.env.CI === "true";
-const basePath = isProduction ? "/memori" : "/";
+const basePath = isProduction ? "/xiaety" : "/";
 
 export default defineConfig({
 	site: "https://nemoizm.github.io",
