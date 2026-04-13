@@ -1,0 +1,187 @@
+---
+import { getCollection } from "astro:content";
+import { Icon } from "astro-icon/components";
+import MainGridLayout from "../../layouts/MainGridLayout.astro";
+import {
+	buildCloudinaryOriginalUrl,
+	buildCloudinaryThumbnailUrl,
+	listCloudinaryImages,
+} from "../../utils/cloudinary-utils";
+import { formatDateToYYYYMMDD } from "../../utils/date-utils";
+import "../../styles/gallery.css";
+
+export async function getStaticPaths() {
+	const galleryEntries = await getCollection("galleries");
+	return galleryEntries.map((entry) => {
+		// Extract slug from id: "gallery1/index" -> "gallery1"
+		const slug = entry.id.replace(/\/index$/, "");
+		return {
+			params: { slug },
+			props: { entry },
+		};
+	});
+}
+
+const { entry } = Astro.props;
+const { slug } = Astro.params;
+
+// Get local images under src/content/galleries/<slug>/
+const localImageModules = import.meta.glob(
+	"../../content/galleries/**/*.{jpg,jpeg,png,webp,avif,gif}",
+	{ eager: true },
+) as Record<string, { default: { src: string; width: number; height: number } }>;
+
+const localImageEntries = Object.entries(localImageModules)
+	.filter(([path]) => path.includes(`/galleries/${slug}/`))
+	.sort(([a], [b]) => a.localeCompare(b))
+	.map(([path, mod]) => ({
+		publicId: path,
+		width: mod.default?.width || 400,
+		height: mod.default?.height || 400,
+		thumbnailSrc: mod.default?.src || "",
+		originalSrc: mod.default?.src || "",
+	}));
+
+// Get images from Cloudinary API
+const folderPath = `galleries/${slug}`;
+let cloudinaryImages: Array<{
+	public_id: string;
+	width: number;
+	height: number;
+	format: string;
+	url: string;
+	secure_url: string;
+}> = [];
+
+try {
+	cloudinaryImages = await listCloudinaryImages(folderPath);
+	// Sort images by public_id for consistent ordering
+	cloudinaryImages.sort((a, b) => a.public_id.localeCompare(b.public_id));
+} catch (error) {
+	console.error(
+		`Failed to load images from Cloudinary for gallery ${slug}:`,
+		error,
+	);
+	// If Cloudinary API fails, imageEntries will be empty array
+}
+
+// Build Cloudinary URLs for all images
+const imageEntries = cloudinaryImages.map((image) => {
+	const thumbnailSrc = buildCloudinaryThumbnailUrl(image.public_id, 800);
+	const originalSrc = buildCloudinaryOriginalUrl(image.public_id);
+
+	return {
+		publicId: image.public_id,
+		width: image.width,
+		height: image.height,
+		thumbnailSrc,
+		originalSrc,
+	};
+});
+
+// Merge local images and Cloudinary images, remove duplicates by original URL
+const allImageEntries = [...localImageEntries, ...imageEntries].filter(
+	(image, index, arr) =>
+		Boolean(image.originalSrc) &&
+		arr.findIndex((candidate) => candidate.originalSrc === image.originalSrc) ===
+			index,
+);
+
+const galleryTitle = entry.data.title;
+const galleryDescription =
+	entry.data.description || `Photo gallery: ${galleryTitle}`;
+
+// Preload first 20 images
+const imagesToPreload = allImageEntries.slice(0, 20);
+---
+
+<MainGridLayout title={galleryTitle} description={galleryDescription}>
+	{imagesToPreload.map(({ originalSrc }) => (
+		<link slot="head" rel="preload" as="image" href={originalSrc} />
+	))}
+	<article class="gallery-page">
+		<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4">
+			<div id="gallery-container" class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full" data-pagefind-body>
+				<!-- title -->
+				<div class="relative onload-animation">
+					<h1
+						class="transition w-full block font-bold mb-3
+						text-3xl md:text-[2.25rem]/[2.75rem]
+						text-black/90 dark:text-white/90
+						md:before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
+						before:absolute before:top-[0.75rem] before:left-[-1.125rem]
+						flex items-center gap-2
+						" data-pagefind-meta="title">
+						<Icon name="material-symbols:photo-library-rounded" class="text-2xl text-[var(--primary)]"></Icon>
+						{galleryTitle}
+					</h1>
+				</div>
+
+				<!-- metadata -->
+				<div class="onload-animation mb-5">
+					<div class="flex flex-wrap items-center gap-4 gap-x-4 gap-y-2 text-neutral-500 dark:text-neutral-400">
+						<div class="flex items-center">
+							<div class="meta-icon">
+								<Icon name="material-symbols:calendar-today-outline-rounded" class="text-xl"></Icon>
+							</div>
+							<span class="text-50 text-sm font-medium">{formatDateToYYYYMMDD(entry.data.published)}</span>
+						</div>
+                        {entry.data.camera && (
+							<div class="flex items-center">
+								<div class="meta-icon">
+									<Icon name="material-symbols:photo-camera-outline-rounded" class="text-xl"></Icon>
+								</div>
+								<span class="text-50 text-sm font-medium">{entry.data.camera}</span>
+							</div>
+						)}
+						{entry.data.location && (
+							<div class="flex items-center">
+								<div class="meta-icon">
+									<Icon name="material-symbols:location-on-outline-rounded" class="text-xl"></Icon>
+								</div>
+								<span class="text-50 text-sm font-medium">{entry.data.location}</span>
+							</div>
+						)}
+					</div>
+					<div class="border-[var(--line-divider)] border-dashed border-b-[1px] mt-5"></div>
+				</div>
+
+				<!-- description -->
+				{entry.data.description && (
+					<div class="mb-8 onload-animation">
+						<p class="text-lg text-black/70 dark:text-white/70" data-pagefind-meta="description">
+							{entry.data.description}
+						</p>
+					</div>
+				)}
+				<!-- Hidden description for pagefind indexing when no description exists -->
+				{!entry.data.description && (
+					<p class="sr-only" data-pagefind-meta="description">
+						Photo gallery: {galleryTitle}
+					</p>
+				)}
+			</div>
+		</div>
+
+		<section class="justified-gallery" id="gallery">
+			{allImageEntries.map(({ thumbnailSrc, originalSrc, width, height }, index) => (
+				<a
+					href={originalSrc}
+					data-fancybox="gallery"
+					data-src={originalSrc}
+					data-caption={`${galleryTitle}`}
+					class="gallery-image-link">
+					<img
+						src={thumbnailSrc}
+						alt={`${galleryTitle}`}
+						width={width || 400}
+						height={height || 400}
+						loading={index < 20 ? "eager" : "lazy"}
+						style="width: 100%; height: 100%; object-fit: cover;"
+					/>
+				</a>
+			))}
+		</section>
+	</article>
+</MainGridLayout>
+
